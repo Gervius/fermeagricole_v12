@@ -247,8 +247,8 @@ export default function DailyRecords({ initialFlock, onClose, onFlockUpdate, rec
                                     <td className="px-4 py-3 text-stone-700">
                                         {new Date(record.date).toLocaleDateString('fr-FR')}
                                     </td>
-                                    <td className="px-4 py-3 text-stone-700">{record.losses}</td>
-                                    <td className="px-4 py-3 text-stone-700">{record.eggs.toLocaleString('fr-FR')}</td>
+                                    <td className="px-4 py-3 text-red-600 font-medium">{record.losses}</td>
+                                    <td className="px-4 py-3 text-amber-600 font-medium">{record.eggs.toLocaleString('fr-FR')}</td>
                                     <td className="px-4 py-3 text-stone-700">
                                         <div>{record.feed_consumed ? `${record.feed_consumed} kg` : '—'}</div>
                                         {record.feed_type_name && <div className="text-xs text-stone-500">{record.feed_type_name}</div>}

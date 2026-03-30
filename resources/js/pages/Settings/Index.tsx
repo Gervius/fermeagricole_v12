@@ -65,7 +65,7 @@ export default function SettingsIndex({ settings }: SettingsProps) {
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
-        post(route('settings.update'), {
+        post(settingsUpdate.url(), {
             preserveScroll: true,
         });
     };

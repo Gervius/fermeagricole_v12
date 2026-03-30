@@ -212,13 +212,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'index'   => 'journalVouchersIndex',
         'show'  => 'journalVoucherShow',])->parameters(['journal-vouchers' => 'journalVoucher']);
     
-    Route::resource('accounting-rules', \App\Http\Controllers\AccountingRuleController::class)->names([
-        'index' => 'accounting-rules.index',
-        'create' => 'accounting-rules.create',
-        'store' => 'accounting-rules.store',
-        'edit' => 'accounting-rules.edit',
-        'update' => 'accounting-rules.update',
-        'destroy' => 'accounting-rules.destroy',
+    Route::resource('accounting-rules', AccountingRuleController::class)->names([
+        'index' => 'accountingRulesIndex',
+        'create' => 'accountingRulesCreate',
+        'store' => 'accountingRulesStore',
+        'edit' => 'accountingRulesEdit',
+        'update' => 'accountingRulesUpdate',
+        'destroy' => 'accountingRulesDestroy',
     ]);
 
     Route::resource('partners', PartnerController::class)
@@ -259,17 +259,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/aging/pdf', [ReportController::class, 'downloadAgingPdf'])->name('AgingPdf');
     });
 
-    Route::resource('accounting-rules', AccountingRuleController::class)
-        ->only(['index', 'create','edit','store', 'update', 'destroy'])
-        ->names([
-            'index' => 'accountingRulesIndex',
-            'create' => 'accountingRulesCreate',
-            'store' => 'accountingRulesStore',
-
-            'update' => 'accountingRulesUpdate',
-            'edit' => 'accountingRulesEdit',
-            'destroy' => 'accountingRulesDestroy',
-        ]);
+    
 });
 
 require __DIR__.'/settings.php';
