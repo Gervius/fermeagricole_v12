@@ -1,0 +1,139 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Recipe;
+use App\Models\Ingredient;
+use App\Models\Unit;
+use App\Http\Requests\StoreRecipeRequest;
+use App\Http\Requests\UpdateRecipeRequest;
+use Inertia\Inertia;
+
+class RecipeController extends Controller
+{
+
+    public function index()
+    {
+        // On récupère les recettes et on map directement vers des tableaux propres
+        $recipes = Recipe::with(['ingredients.defaultUnit', 'unit'])
+            ->get()
+            ->map(function ($recipe) {
+                return [
+                    'id' => $recipe->id,
+                    'name' => $recipe->name,
+                    'description' => $recipe->description,
+                    'yield_quantity' => (float) $recipe->yield,
+                    'yield_unit_id' => $recipe->unit_id,
+                    'is_active' => $recipe->is_active,
+                    // On formate les ingrédients en tableau
+                    'ingredients' => $recipe->ingredients->map(function ($ingredient) {
+                        return [
+                            'id'          => $ingredient->id,
+                            'name'        => $ingredient->name,
+                            'quantity'    => (float) $ingredient->pivot->quantity, // Ici la quantité est bien extraite du pivot
+                            'unit_id'     => (int) $ingredient->pivot->unit_id,
+                            'unit_name'   => optional($ingredient->defaultUnit)->symbol ?? '',
+                            'pmp'         => (float) ($ingredient->pmp ?? 0),
+                        ];
+                    })->toArray(),
+                    // On calcule le coût total directement depuis les données pivot
+                    'total_cost' => $recipe->ingredients->sum(function($ingredient) {
+                         return ($ingredient->pmp ?? 0) * ($ingredient->pivot->quantity ?? 0);
+                    }),
+                ];
+            });
+
+        $rawMaterials = Ingredient::with('defaultUnit')->get()->map(function($ing) {
+            return [
+                'id' => $ing->id,
+                'name' => $ing->name,
+                'stock_quantity' => $ing->current_stock ?? 0, // Attention: dans ton array tu as mis stock_quantity, mais ta table utilise current_stock
+                'unit_name' => optional($ing->defaultUnit)->symbol ?? '',
+                'pmp' => $ing->pmp ?? 0,
+                'default_unit_id' => optional($ing->defaultUnit)->id ?? null,
+            ];
+        });
+
+        $units = Unit::all(['id', 'name', 'symbol']);
+
+        return Inertia::render('Recipes/Index', [
+            'recipes' => $recipes,
+            'rawMaterials' => $rawMaterials,
+            'units' => $units,
+        ]);
+    }
+    
+
+    public function create()
+    {
+        $ingredients = Ingredient::all(['id', 'name', 'default_unit_id']);
+        $units = Unit::all();
+        return Inertia::render('Recipes/Create', [
+            'ingredients' => $ingredients,
+            'units' => $units,
+        ]);
+    }
+
+    public function store(StoreRecipeRequest $request)
+    {
+        $recipe = Recipe::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'yield' => $request->yield_quantity, // Correspond au champ validé
+            'unit_id' => $request->yield_unit_id,   // Correspond au champ validé
+            'is_active' => $request->is_active ?? true,
+        ]);
+
+        // Attacher les ingrédients
+        foreach ($request->ingredients as $ing) {
+            $recipe->ingredients()->attach($ing['ingredient_id'], [
+                'quantity' => $ing['quantity'],
+                'unit_id' => $ing['unit_id'],
+            ]);
+        }
+
+        return redirect()->route('recipesIndex')->with('success', 'Recette créée.');
+    }
+
+    public function edit(Recipe $recipe)
+    {
+        $recipe->load('ingredients');
+        $ingredients = Ingredient::all(['id', 'name', 'default_unit_id']);
+        $units = Unit::all();
+        return Inertia::render('Recipes/Edit', [
+            'recipe' => $recipe,
+            'ingredients' => $ingredients,
+            'units' => $units,
+        ]);
+    }
+
+    public function update(UpdateRecipeRequest $request, Recipe $recipe)
+    {
+        $recipe->update([
+            'name' => $request->name,
+            'description' => $request->description,
+            'yield' => $request->yield_quantity,
+            'unit_id' => $request->yield_unit_id,
+            'is_active' => $request->is_active ?? true,
+        ]);
+
+        // Synchroniser les ingrédients
+        $syncData = [];
+        foreach ($request->ingredients as $ing) {
+            $syncData[$ing['ingredient_id']] = [
+                'quantity' => $ing['quantity'],
+                'unit_id' => $ing['unit_id'],
+            ];
+        }
+        $recipe->ingredients()->sync($syncData);
+
+        return redirect()->route('recipesIndex')->with('success', 'Recette mise à jour.');
+    }
+
+    public function destroy(Recipe $recipe)
+    {
+        $recipe->delete();
+        return redirect()->route('recipesIndex')->with('success', 'Recette supprimée.');
+    }
+}
