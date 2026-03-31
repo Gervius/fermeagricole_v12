@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Head, router } from '@inertiajs/react';
 import {
     Plus, Search, Eye, MessageCircle, Download, DollarSign, Clock, 
-    CheckCircle, AlertCircle, FileText, Send, XCircle, ArrowBigRight, 
+    CheckCircle, AlertCircle, FileText, Send, XCircle, ArrowRight, 
     ShoppingCart, Tag, AlertTriangle
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
@@ -108,7 +108,7 @@ export default function InvoicesIndex({ invoices, filters, stats, flash }: Props
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <StatCard title="Chiffre d'Affaires" value={stats.total_revenue} icon={DollarSign} color="indigo" />
                     <StatCard title="Encaissé" value={stats.total_collected} icon={CheckCircle} color="emerald" />
-                    <StatCard title="Reste à encaisser" value={stats.total_receivable} icon={ArrowBigRight} color="amber" />
+                    <StatCard title="Reste à encaisser" value={stats.total_receivable} icon={ArrowRight} color="amber" />
                     <StatCard title="En retard" value={stats.overdue_count} isCount icon={AlertTriangle} color="red" />
                 </div>
 

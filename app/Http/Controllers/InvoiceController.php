@@ -246,17 +246,6 @@ class InvoiceController extends Controller
         
         return $pdf->download("Facture_{$invoice->number}.pdf");
     }
-
     
-    /* public function whatsapp(Invoice $invoice)
-    {
-        $phone = $invoice->partner?->phone; // ou customer_phone si vous avez un champ
-        if (!$phone) {
-            return back()->with('error', 'Numéro de téléphone manquant.');
-        }
-        $message = "Bonjour {$invoice->customer_name}, votre facture {$invoice->number} d'un montant de " . formatCurrency($invoice->remaining) . " est due.";
-        $url = "https://wa.me/" . preg_replace('/\s+/', '', $phone) . "?text=" . urlencode($message);
-        return redirect()->away($url);
-    } */
     
 }
