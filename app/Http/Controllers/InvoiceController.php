@@ -96,7 +96,7 @@ class InvoiceController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'type' => 'required|in:sale,purchase', // Nouveau champ requis
+            'type' => 'required|in:sale,purchase',
             'number' => 'required|unique:invoices',
             'partner_id' => 'required|exists:partners,id',
             'date' => 'required|date',
@@ -107,23 +107,27 @@ class InvoiceController extends Controller
         ]);
 
         DB::transaction(function () use ($validated) {
+            // Le subtotal global
             $subtotal = collect($validated['items'])->sum(fn($i) => $i['quantity'] * $i['unit_price']);
             $partner = Partner::findOrFail($validated['partner_id']);
 
             $invoice = Invoice::create([
-                'type' => $validated['type'], // On enregistre le type (sale/purchase)
+                'type' => $validated['type'],
                 'number' => $validated['number'],
                 'partner_id' => $validated['partner_id'],
                 'customer_name' => $partner->name,
                 'date' => $validated['date'],
                 'subtotal' => $subtotal,
-                'total' => $subtotal,
+                'total' => $subtotal, // Assumons que subtotal = total s'il n'y a pas encore de taxes
                 'status' => 'draft',
                 'payment_status' => 'unpaid',
                 'created_by' => auth()->id(),
             ]);
 
             foreach ($validated['items'] as $item) {
+                // 💡 CORRECTION ICI : On calcule le total de la ligne avant l'insertion
+                $item['total'] = $item['quantity'] * $item['unit_price'];
+                
                 $invoice->items()->create($item);
             }
         });

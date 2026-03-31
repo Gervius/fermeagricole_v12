@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
-import { Plus, Search, Edit2, Trash2, Download, Building2, User, Truck, X } from 'lucide-react';
+import { 
+    Plus, Search, Edit2, Trash2, Download, Building2, 
+    User, Truck, X, Phone, Mail, MapPin, CheckCircle2, XCircle 
+} from 'lucide-react';
 import { useToasts } from '@/components/ToastProvider';
 import { formatCurrency } from '@/lib/utils';
 import { partnersIndex, partnersStore, partnersUpdate, partnersDestroy } from '@/routes';
@@ -81,8 +84,10 @@ export default function Index({ partners, filters, flash }: Props) {
 
     const closeModal = () => {
         setIsModalOpen(false);
-        reset();
-        setEditingId(null);
+        setTimeout(() => {
+            reset();
+            setEditingId(null);
+        }, 200); // Délai pour l'animation de fermeture
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -101,134 +106,190 @@ export default function Index({ partners, filters, flash }: Props) {
     };
 
     const handleDelete = (partner: Partner) => {
-        if (confirm(`Supprimer le partenaire "${partner.name}" ?`)) {
+        if (confirm(`Êtes-vous sûr de vouloir supprimer le partenaire "${partner.name}" ?`)) {
             router.delete(partnersDestroy.url(partner.id));
         }
     };
 
     const getTypeLabel = (type: string) => {
         switch(type) {
-            case 'customer': return <span className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md text-xs font-medium border border-emerald-100"><User className="w-3 h-3" /> Client</span>;
-            case 'supplier': return <span className="flex items-center gap-1 text-blue-600 bg-blue-50 px-2 py-1 rounded-md text-xs font-medium border border-blue-100"><Truck className="w-3 h-3" /> Fournisseur</span>;
-            case 'both': return <span className="flex items-center gap-1 text-purple-600 bg-purple-50 px-2 py-1 rounded-md text-xs font-medium border border-purple-100"><Building2 className="w-3 h-3" /> Mixte</span>;
+            case 'customer': return <span className="flex items-center gap-1.5 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md text-xs font-semibold border border-emerald-200 w-max"><User className="w-3.5 h-3.5" /> Client</span>;
+            case 'supplier': return <span className="flex items-center gap-1.5 text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md text-xs font-semibold border border-blue-200 w-max"><Truck className="w-3.5 h-3.5" /> Fournisseur</span>;
+            case 'both': return <span className="flex items-center gap-1.5 text-purple-700 bg-purple-50 px-2.5 py-1 rounded-md text-xs font-semibold border border-purple-200 w-max"><Building2 className="w-3.5 h-3.5" /> Mixte</span>;
             default: return type;
         }
+    };
+
+    const getInitials = (name: string) => {
+        return name.substring(0, 2).toUpperCase();
     };
 
     return (
         <AppLayout breadcrumbs={[{ title: 'Tiers & Partenaires', href: partnersIndex.url() }]}>
             <Head title="Gestion des Partenaires" />
-            <div className="min-h-screen bg-stone-50 font-sans pb-12">
+            <div className="min-h-screen bg-stone-50/50 pb-12">
 
                 {/* Header */}
-                <div className="bg-white border-b border-stone-200 px-8 py-6">
-                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="bg-white border-b border-stone-200 px-4 sm:px-8 py-6 sticky top-0 z-10">
+                    <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl font-semibold text-stone-900 tracking-tight flex items-center gap-2">
-                                <Building2 className="w-6 h-6 text-stone-400" />
+                            <h1 className="text-2xl font-bold text-stone-900 tracking-tight flex items-center gap-2.5">
+                                <div className="p-2 bg-stone-100 rounded-lg">
+                                    <Building2 className="w-6 h-6 text-stone-600" />
+                                </div>
                                 Tiers & Partenaires
                             </h1>
-                            <p className="text-stone-500 text-sm mt-1">Gérez vos clients, fournisseurs et leurs soldes.</p>
+                            <p className="text-stone-500 text-sm mt-1.5">Gérez votre répertoire de clients, fournisseurs et suivez leurs soldes comptables.</p>
                         </div>
                         <button
                             onClick={openCreateModal}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm whitespace-nowrap"
+                            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl transition-all shadow-sm hover:shadow-md whitespace-nowrap"
                         >
-                            <Plus className="w-4 h-4" /> Nouveau Partenaire
+                            <Plus className="w-4 h-4" /> Ajouter un partenaire
                         </button>
                     </div>
                 </div>
 
-                <div className="max-w-7xl mx-auto px-8 py-8 space-y-6">
+                <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-6">
 
-                    {/* Filters */}
-                    <div className="bg-white border border-stone-200 rounded-xl p-4 flex flex-col sm:flex-row gap-4 justify-between items-center shadow-sm">
-                        <form onSubmit={handleSearch} className="flex-1 flex gap-3 w-full">
-                            <div className="relative flex-1 max-w-md">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                    {/* Barre de recherche et filtres */}
+                    <div className="bg-white border border-stone-200 rounded-2xl p-2 shadow-sm">
+                        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
                                 <input
                                     type="text"
                                     name="search"
                                     defaultValue={filters.search}
-                                    placeholder="Nom, Téléphone, Email..."
-                                    className="w-full pl-9 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 transition-shadow"
+                                    placeholder="Rechercher par nom, téléphone, email..."
+                                    className="w-full pl-11 pr-4 py-3 bg-transparent border-none text-sm focus:ring-0 text-stone-900 placeholder-stone-400"
                                 />
                             </div>
-                            <select
-                                name="type"
-                                defaultValue={filters.type}
-                                className="px-3 py-2 bg-stone-50 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-                            >
-                                <option value="">Tous les types</option>
-                                <option value="customer">Clients</option>
-                                <option value="supplier">Fournisseurs</option>
-                                <option value="both">Mixte</option>
-                            </select>
-                            <button type="submit" className="px-4 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 text-sm font-medium rounded-lg transition-colors border border-stone-200">
-                                Rechercher
-                            </button>
+                            <div className="h-auto w-px bg-stone-200 hidden sm:block mx-2 my-2"></div>
+                            <div className="flex gap-2 sm:w-auto w-full">
+                                <select
+                                    name="type"
+                                    defaultValue={filters.type}
+                                    className="flex-1 sm:w-48 px-4 py-3 bg-transparent border-none text-sm focus:ring-0 text-stone-700 font-medium cursor-pointer"
+                                >
+                                    <option value="">Tous les types</option>
+                                    <option value="customer">Clients uniquement</option>
+                                    <option value="supplier">Fournisseurs uniquement</option>
+                                    <option value="both">Mixtes</option>
+                                </select>
+                                <button type="submit" className="px-6 py-3 bg-stone-900 hover:bg-stone-800 text-white text-sm font-semibold rounded-xl transition-colors">
+                                    Filtrer
+                                </button>
+                            </div>
                         </form>
                     </div>
 
-                    {/* Table */}
-                    <div className="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm">
+                    {/* Table des partenaires */}
+                    <div className="bg-white border border-stone-200 rounded-2xl shadow-sm overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm text-left">
-                                <thead className="bg-stone-50 text-stone-500 text-xs uppercase tracking-wider font-semibold border-b border-stone-200">
+                                <thead className="bg-stone-50/80 text-stone-500 text-xs uppercase tracking-wider font-bold border-b border-stone-200">
                                     <tr>
-                                        <th className="px-6 py-4">Nom / Contact</th>
-                                        <th className="px-6 py-4">Type</th>
-                                        <th className="px-6 py-4 text-right">Solde Actuel</th>
+                                        <th className="px-6 py-4">Partenaire</th>
+                                        <th className="px-6 py-4">Contact</th>
+                                        <th className="px-6 py-4">Type & Statut</th>
+                                        <th className="px-6 py-4 text-right">Solde Comptable</th>
                                         <th className="px-6 py-4 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-stone-100">
                                     {partners.data.length === 0 ? (
                                         <tr>
-                                            <td colSpan={4} className="px-6 py-12 text-center text-stone-500">
-                                                Aucun partenaire trouvé.
+                                            <td colSpan={5} className="px-6 py-16 text-center">
+                                                <div className="flex flex-col items-center justify-center">
+                                                    <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mb-4">
+                                                        <Search className="w-8 h-8 text-stone-400" />
+                                                    </div>
+                                                    <p className="text-stone-900 font-medium text-base">Aucun partenaire trouvé</p>
+                                                    <p className="text-stone-500 mt-1">Essayez d'ajuster vos critères de recherche.</p>
+                                                </div>
                                             </td>
                                         </tr>
                                     ) : (
                                         partners.data.map(partner => (
-                                            <tr key={partner.id} className={`hover:bg-stone-50 transition-colors ${!partner.is_active ? 'opacity-50' : ''}`}>
+                                            <tr key={partner.id} className={`hover:bg-stone-50/80 transition-colors group ${!partner.is_active ? 'opacity-75' : ''}`}>
                                                 <td className="px-6 py-4">
-                                                    <div className="font-medium text-stone-900 text-base">{partner.name} {!partner.is_active && '(Inactif)'}</div>
-                                                    <div className="text-xs text-stone-500 mt-1 flex gap-3">
-                                                        {partner.phone && <span>{partner.phone}</span>}
-                                                        {partner.email && <span>{partner.email}</span>}
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${partner.is_active ? 'bg-amber-100 text-amber-700' : 'bg-stone-100 text-stone-500'}`}>
+                                                            {getInitials(partner.name)}
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-semibold text-stone-900 text-base">{partner.name}</div>
+                                                            {partner.address && (
+                                                                <div className="text-xs text-stone-500 flex items-center gap-1 mt-0.5">
+                                                                    <MapPin className="w-3 h-3" />
+                                                                    <span className="truncate max-w-[200px]">{partner.address}</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {getTypeLabel(partner.type)}
+                                                    <div className="space-y-1.5 text-xs text-stone-600">
+                                                        {partner.phone ? (
+                                                            <div className="flex items-center gap-2">
+                                                                <Phone className="w-3.5 h-3.5 text-stone-400" /> {partner.phone}
+                                                            </div>
+                                                        ) : <span className="text-stone-400 italic">—</span>}
+                                                        
+                                                        {partner.email && (
+                                                            <div className="flex items-center gap-2">
+                                                                <Mail className="w-3.5 h-3.5 text-stone-400" /> {partner.email}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-col items-start gap-2">
+                                                        {getTypeLabel(partner.type)}
+                                                        {partner.is_active ? (
+                                                            <span className="flex items-center gap-1 text-[11px] font-medium text-stone-500">
+                                                                <CheckCircle2 className="w-3 h-3 text-emerald-500" /> Actif
+                                                            </span>
+                                                        ) : (
+                                                            <span className="flex items-center gap-1 text-[11px] font-medium text-stone-400">
+                                                                <XCircle className="w-3 h-3 text-stone-400" /> Inactif
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <div className={`inline-flex items-center px-3 py-1 rounded-full font-bold border ${partner.balance > 0 ? 'bg-red-50 text-red-700 border-red-200' : (partner.balance < 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-stone-100 text-stone-600 border-stone-200')}`}>
-                                                        {formatCurrency(Math.abs(partner.balance))}
-                                                        <span className="ml-1 text-[10px] font-normal opacity-80 uppercase tracking-wider">
-                                                            {partner.balance > 0 ? 'Dû (Débiteur)' : (partner.balance < 0 ? 'Avoir (Créditeur)' : '')}
+                                                    <div className={`inline-flex flex-col items-end px-3 py-1.5 rounded-lg font-bold ${
+                                                        partner.balance > 0 ? 'bg-red-50 text-red-700' : 
+                                                        (partner.balance < 0 ? 'bg-emerald-50 text-emerald-700' : 'text-stone-600')
+                                                    }`}>
+                                                        <span>{formatCurrency(Math.abs(partner.balance))}</span>
+                                                        <span className="text-[10px] font-semibold opacity-70 uppercase tracking-widest mt-0.5">
+                                                            {partner.balance > 0 ? 'Débiteur (Dû)' : (partner.balance < 0 ? 'Créditeur (Avoir)' : 'À jour')}
                                                         </span>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <div className="flex items-center justify-end gap-2">
+                                                    <div className="flex items-center justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                                         <a
                                                             href={`/partners/${partner.id}/statement`}
                                                             target="_blank"
                                                             title="Télécharger le relevé (3 derniers mois)"
-                                                            className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-md transition-colors"
+                                                            className="p-2.5 text-stone-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                                                         >
                                                             <Download className="w-4 h-4" />
                                                         </a>
                                                         <button
                                                             onClick={() => openEditModal(partner)}
-                                                            className="p-2 text-stone-400 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"
+                                                            title="Modifier"
+                                                            className="p-2.5 text-stone-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
                                                         >
                                                             <Edit2 className="w-4 h-4" />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(partner)}
-                                                            className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                                                            title="Supprimer"
+                                                            className="p-2.5 text-stone-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
@@ -245,102 +306,130 @@ export default function Index({ partners, filters, flash }: Props) {
                 </div>
             </div>
 
-            {/* Modal */}
+            {/* Modal de Création / Édition */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden">
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-stone-100 bg-stone-50">
-                            <h3 className="text-lg font-medium text-stone-900">
-                                {editingId ? 'Modifier le partenaire' : 'Nouveau partenaire'}
-                            </h3>
-                            <button onClick={closeModal} className="text-stone-400 hover:text-stone-600 p-1">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm transition-opacity">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all">
+                        <div className="flex items-center justify-between px-8 py-5 border-b border-stone-100 bg-white">
+                            <div>
+                                <h3 className="text-xl font-bold text-stone-900">
+                                    {editingId ? 'Modifier le partenaire' : 'Nouveau partenaire'}
+                                </h3>
+                                <p className="text-sm text-stone-500 mt-1">
+                                    {editingId ? 'Mettez à jour les informations du profil.' : 'Remplissez les informations ci-dessous pour créer une fiche.'}
+                                </p>
+                            </div>
+                            <button onClick={closeModal} className="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-100 rounded-full transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-stone-700 mb-1">Nom complet *</label>
-                                <input
-                                    type="text"
-                                    value={data.name}
-                                    onChange={e => setData('name', e.target.value)}
-                                    className="w-full rounded-lg border-stone-300 focus:border-amber-500 focus:ring-amber-500 sm:text-sm"
-                                    required
-                                />
-                                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-                            </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                        <form onSubmit={handleSubmit} className="p-8">
+                            <div className="space-y-6">
+                                {/* Ligne 1 : Nom et Type */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-stone-700 mb-1.5">Nom complet ou Raison sociale <span className="text-red-500">*</span></label>
+                                        <input
+                                            type="text"
+                                            value={data.name}
+                                            onChange={e => setData('name', e.target.value)}
+                                            placeholder="Ex: Entreprise S.A."
+                                            className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all text-sm"
+                                            required
+                                        />
+                                        {errors.name && <p className="text-red-500 text-xs mt-1.5">{errors.name}</p>}
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-stone-700 mb-1.5">Type de partenaire <span className="text-red-500">*</span></label>
+                                        <select
+                                            value={data.type}
+                                            onChange={e => setData('type', e.target.value)}
+                                            className="w-full px-4 py-2.5 rounded-xl border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all text-sm bg-white"
+                                        >
+                                            <option value="customer">Client</option>
+                                            <option value="supplier">Fournisseur</option>
+                                            <option value="both">Mixte (Client & Fournisseur)</option>
+                                        </select>
+                                        {errors.type && <p className="text-red-500 text-xs mt-1.5">{errors.type}</p>}
+                                    </div>
+                                </div>
+
+                                {/* Ligne 2 : Contact */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-stone-700 mb-1.5">Téléphone</label>
+                                        <div className="relative">
+                                            <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                                            <input
+                                                type="text"
+                                                value={data.phone}
+                                                onChange={e => setData('phone', e.target.value)}
+                                                placeholder="+226..."
+                                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-stone-700 mb-1.5">Adresse Email</label>
+                                        <div className="relative">
+                                            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+                                            <input
+                                                type="email"
+                                                value={data.email}
+                                                onChange={e => setData('email', e.target.value)}
+                                                placeholder="contact@exemple.com"
+                                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Ligne 3 : Adresse physique */}
                                 <div>
-                                    <label className="block text-sm font-medium text-stone-700 mb-1">Type de Tiers *</label>
-                                    <select
-                                        value={data.type}
-                                        onChange={e => setData('type', e.target.value)}
-                                        className="w-full rounded-lg border-stone-300 focus:border-amber-500 focus:ring-amber-500 sm:text-sm"
+                                    <label className="block text-sm font-semibold text-stone-700 mb-1.5">Adresse Physique</label>
+                                    <div className="relative">
+                                        <MapPin className="absolute left-3.5 top-3 w-4 h-4 text-stone-400" />
+                                        <textarea
+                                            value={data.address}
+                                            onChange={e => setData('address', e.target.value)}
+                                            rows={2}
+                                            placeholder="Quartier, Secteur, Rue..."
+                                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-stone-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all text-sm resize-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Ligne 4 : Statut avec un Toggle moderne */}
+                                <div className="flex items-center justify-between p-4 bg-stone-50 rounded-xl border border-stone-100">
+                                    <div>
+                                        <p className="text-sm font-semibold text-stone-900">Statut du compte</p>
+                                        <p className="text-xs text-stone-500 mt-0.5">Activer ou désactiver ce partenaire dans le système.</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setData('is_active', !data.is_active)}
+                                        className={`${data.is_active ? 'bg-emerald-500' : 'bg-stone-300'} relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2`}
                                     >
-                                        <option value="customer">Client</option>
-                                        <option value="supplier">Fournisseur</option>
-                                        <option value="both">Mixte (Les deux)</option>
-                                    </select>
-                                    {errors.type && <p className="text-red-500 text-xs mt-1">{errors.type}</p>}
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-stone-700 mb-1">Téléphone</label>
-                                    <input
-                                        type="text"
-                                        value={data.phone}
-                                        onChange={e => setData('phone', e.target.value)}
-                                        placeholder="+226..."
-                                        className="w-full rounded-lg border-stone-300 focus:border-amber-500 focus:ring-amber-500 sm:text-sm"
-                                    />
+                                        <span className={`${data.is_active ? 'translate-x-5' : 'translate-x-0'} pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out`} />
+                                    </button>
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium text-stone-700 mb-1">Email</label>
-                                <input
-                                    type="email"
-                                    value={data.email}
-                                    onChange={e => setData('email', e.target.value)}
-                                    className="w-full rounded-lg border-stone-300 focus:border-amber-500 focus:ring-amber-500 sm:text-sm"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-stone-700 mb-1">Adresse</label>
-                                <textarea
-                                    value={data.address}
-                                    onChange={e => setData('address', e.target.value)}
-                                    rows={2}
-                                    className="w-full rounded-lg border-stone-300 focus:border-amber-500 focus:ring-amber-500 sm:text-sm resize-none"
-                                />
-                            </div>
-
-                            <div className="flex items-center gap-2 pt-2">
-                                <input
-                                    type="checkbox"
-                                    id="is_active"
-                                    checked={data.is_active}
-                                    onChange={e => setData('is_active', e.target.checked)}
-                                    className="rounded border-stone-300 text-amber-600 focus:ring-amber-600"
-                                />
-                                <label htmlFor="is_active" className="text-sm font-medium text-stone-700">Compte Actif</label>
-                            </div>
-
-                            <div className="flex justify-end gap-3 pt-6 border-t border-stone-100">
+                            <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-stone-100">
                                 <button
                                     type="button"
                                     onClick={closeModal}
-                                    className="px-4 py-2 text-sm font-medium text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50"
+                                    className="px-5 py-2.5 text-sm font-semibold text-stone-700 bg-white border border-stone-200 rounded-xl hover:bg-stone-50 transition-colors"
                                 >
                                     Annuler
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="px-4 py-2 text-sm font-medium text-white bg-amber-500 rounded-lg hover:bg-amber-600 disabled:opacity-50"
+                                    className="px-6 py-2.5 text-sm font-semibold text-white bg-amber-500 rounded-xl hover:bg-amber-600 transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
                                 >
-                                    {editingId ? 'Mettre à jour' : 'Créer le partenaire'}
+                                    {editingId ? 'Enregistrer les modifications' : 'Créer le partenaire'}
                                 </button>
                             </div>
                         </form>
